@@ -1,0 +1,50 @@
+Create three VMs 2 Master jenkins servers and one for HAProxy
+
+Install Jenkins in master servers
+
+Stop the Jenkins server in both servers
+
+configure NFS in AWS and attach it to master servers at path /var/lib/jenkins/jobs
+	- Add mount target to NFS in which vm's are present
+	- run sudo apt-get install nfs-common -y on both servers
+	- Run command from Attach option in NFS
+e.g.sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport 172.31.1.66:/ /var/lib/jenkins/jobs
+
+Provide jenkins user permissions to /var/lib/jenkins/jobs folder
+e.g. chown -R jenkins:jenkins /var/lib/jenkins/jobs
+
+Start the jenkins server and create project in one server, restart jenkins in another server to show the project created in first server
+
+To reload Jenkins automatically instead of restarting jenkins manually:
+
+Copy the Crumb script to cron jobs
+	- change to root user and create a file reload.sh and add crumb script
+	- create a file at /etc/cron.d/ i.e jenkinsreload and enter */1 * * * * root /bin/bash /root/reload.sh
+
+Now create HAProxy config on HA Proxy server
+	- Install HAProxy - Sudo apt-get install haproxy
+	- change config file i.e. sudo nano /etc/haproxy/haproxy.cfg with below data, however it is failing.
+
+defaults
+  log  global
+  maxconn  2000
+  mode  http
+  option  redispatch
+  option  forwardfor
+  option  http-server-close
+  retries  3
+  timeout  http-request 10s
+  timeout  queue 1m
+  timeout  connect 10s
+  timeout  client 1m
+  timeout  server 1m
+  timeout  check 10s
+
+frontend ft_jenkins
+  bind *:80
+  default_backend  bk_jenkins
+  http-request add-header  X-Forwarded-Proto http
+
+backend bk_jenkins
+  server jenkins1 3.87.208.130:8080 check
+  server jenkins2 52.202.215.198:8080 check backup
