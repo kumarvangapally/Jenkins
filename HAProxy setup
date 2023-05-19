@@ -14,6 +14,7 @@ Provide jenkins user permissions to /var/lib/jenkins/jobs folder
 e.g. chown -R jenkins:jenkins /var/lib/jenkins/jobs
 
 Start the jenkins server and create project in one server, restart jenkins in another server to show the project created in first server
+#use https://github.com/Azure-Samples/azure-files-samples repo, run AzFileDiagnostics script to mount Azure file share to Linux box
 
 To reload Jenkins automatically instead of restarting jenkins manually:
 
